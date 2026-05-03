@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Katalog - BILOL'S TEXNO SHOP{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="row">
+        <!-- CHAP TOMON: FILTERLAR -->
+        <div class="col-lg-3 col-md-4 mb-4">
+            <div class="card border-0 shadow-sm rounded-4 p-3 sticky-top" style="top: 90px; z-index: 10;">
+                <h5 class="fw-bold mb-3 text-primary"><i class="fas fa-sliders-h me-2"></i>Filterlar</h5>
+                
+                <form method="GET" action="{% url 'phones:catalog' %}" id="catalog-filter-form">
+                    
+                    <!-- Qidiruv -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Qidiruv:</label>
+                        <input type="text" name="q" class="form-control form-control-sm" 
+                               placeholder="Model nomi..." value="{{ search_query }}">
+                    </div>
+
+                    <!-- Brend Tanlash -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Brend:</label>
+                        <select name="brand" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="">Barcha Brendlar</option>
+                            {% for b in brands %}
+                                <option value="{{ b }}" {% if selected_brand == b %}selected{% endif %}>
+                                    {{ b }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    
+                    
+
+                    <button type="submit" class="btn btn-primary w-100 btn-sm py-2 rounded-3">
+                        <i class="fas fa-search me-1"></i> Filtrlash
+                    </button>
+                    
+                    {% if selected_brand or min_price or max_price or search_query %}
+                    <a href="{% url 'phones:catalog' %}" class="btn btn-outline-secondary w-100 mt-2 btn-sm py-2 rounded-3">
+                        <i class="fas fa-times me-1"></i> Tozalash
+                    </a>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+
+        <!-- O'NG TOMON: MAHSULOTLAR -->
+        <div class="col-lg-9 col-md-8">
+            
+            <!-- Sarlavha va Natija Soni -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="fw-bold mb-0">Telefonlar Katalogi</h4>
+                <span class="badge bg-light text-dark border px-3 py-2 rounded-pill">
+                    Topildi: {{ total_count }} ta
+                </span>
+            </div>
+
+            <!-- Mahsulotlar Gridi -->
+            <div class="row g-4">
+                {% for phone in phones %}
+                <div class="col-6 col-md-4 animate__animated animate__fadeInUp">
+                    <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden product-card position-relative group-hover">
+                        
+                        <!-- Rasm -->
+                        <a href="{% url 'phones:phone_detail' phone.pk %}" class="text-decoration-none d-block">
+                            <div class="position-relative overflow-hidden bg-white" style="height: 220px;">
+                                {% if phone.image %}
+                                    <img src="{{ phone.image.url }}" 
+                                         class="card-img-top p-3 h-100 w-100 transition-zoom" 
+                                         style="object-fit: contain;" 
+                                         alt="{{ phone.name }}">
+                                {% else %}
+                                    <img src="{% static 'images/no-image.png' %}" 
+                                         class="card-img-top p-3 h-100 w-100" 
+                                         style="object-fit: contain;">
+                                {% endif %}
+                                
+                                <!-- Brend Badge -->
+                                {% if phone.brand %}
+                                <span class="position-absolute top-0 start-0 m-2 badge bg-dark bg-opacity-75 text-white">
+                                    {{ phone.brand }}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </a>
+
+                        <!-- Ma'lumotlar -->
+                        <div class="card-body d-flex flex-column p-3">
+                            <a href="{% url 'phones:phone_detail' phone.pk %}" class="text-decoration-none text-dark">
+                                <h6 class="fw-bold mb-1 text-truncate" title="{{ phone.name }}">{{ phone.name }}</h6>
+                            </a>
+                            
+                            <p class="text-muted small mb-2">
+                                <i class="fas fa-memory me-1"></i> {{ phone.memory|default:"-" }} | 
+                                <i class="fas fa-palette me-1"></i> {{ phone.color|default:"-" }}
+                            </p>
+                            
+                            <div class="mt-auto">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="text-primary fw-bold fs-5">{{ phone.price }} so'm</span>
+                                    <small class="text-success fw-bold"><i class="fas fa-check-circle"></i> Bor</small>
+                                </div>
+                                
+                                <div class="d-grid gap-2">
+                                    <button type="button" 
+                                            data-product-id="{{ phone.id }}"
+                                            data-product-name="{{ phone.name|escapejs }}"
+                                            data-product-price="{{ phone.price }}"
+                                            data-product-image="{% if phone.image %}{{ phone.image.url }}{% else %}{% static 'images/no-image.png' %}{% endif %}"
+                                            class="btn btn-primary py-2 rounded-3 fw-bold add-to-cart-btn"
+                                            style="background: #7000ff;">
+                                        <i class="fas fa-cart-plus me-1"></i> Savatga
+                                    </button>
+                                    <a href="{% url 'phones:phone_detail' phone.pk %}" class="btn btn-outline-secondary py-2 rounded-3">
+                                        Batafsil
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-5">
+                    <i class="fas fa-box-open fa-4x text-muted mb-3 opacity-25"></i>
+                    <h5 class="text-muted">Hech qanday mahsulot topilmadi.</h5>
+                    <p class="text-secondary">Filterlarni o'zgartirib qayta urinib ko'ring.</p>
+                    <a href="{% url 'phones:catalog' %}" class="btn btn-primary mt-2">Barchasini Ko'rish</a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .transition-zoom { transition: transform 0.3s ease; }
+    .group-hover:hover .transition-zoom { transform: scale(1.05); }
+    .product-card { transition: all 0.3s ease; border: 1px solid #f0f0f0; }
+    .product-card:hover { box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important; transform: translateY(-5px); }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const id = this.dataset.productId;
+            const name = this.dataset.productName;
+            const price = this.dataset.productPrice;
+            const image = this.dataset.productImage;
+            
+            if (typeof window.BilolShop?.addToCart === 'function') {
+                window.BilolShop.addToCart(id, name, price, image);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

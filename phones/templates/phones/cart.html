@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="max-width: 600px; margin: 40px auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+    <h2 style="margin-bottom: 20px;">🛒 Savatingiz</h2>
+    <div id="cart-list" style="margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px;"></div>
+    
+    <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1.2rem; margin-bottom: 30px;">
+        <span>Jami:</span>
+        <span id="total-price" style="color: #7000ff;">$0</span>
+    </div>
+
+    <div style="background: #f8f8f8; padding: 25px; border-radius: 15px;">
+        <h4 style="margin-top: 0;">📍 Yetkazib berish ma'lumotlari</h4>
+        <input type="text" id="custName" placeholder="To'liq ismingiz" style="width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box;">
+        <input type="text" id="custPhone" placeholder="Telefon raqamingiz" style="width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box;">
+        
+        <textarea id="custAddress" placeholder="Yetkazib berish manzili" style="width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; min-height: 80px;"></textarea>
+        
+        <button onclick="sendOrder()" id="sendBtn" style="width: 100%; background: #7000ff; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.3s;">
+            Buyurtmani rasmiylashtirish
+        </button>
+    </div>
+</div>
+
+<script>
+    function loadCart() {
+        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        const list = document.getElementById('cart-list');
+        let total = 0;
+        
+        list.innerHTML = cart.length ? '' : '<p style="color:#888;">Savat bo\'sh...</p>';
+        
+        cart.forEach((item, i) => {
+            total += parseFloat(item.price);
+            list.innerHTML += `
+                <div style="display:flex; justify-content:space-between; margin-bottom:12px; align-items: center;">
+                    <span>${item.name}</span>
+                    <div>
+                        <b style="margin-right: 10px;">$${item.price}</b>
+                        <button onclick="removeItem(${i})" style="border:none; background:none; cursor:pointer; color:red;">🗑️</button>
+                    </div>
+                </div>`;
+        });
+        document.getElementById('total-price').innerText = '$' + total.toFixed(2);
+        return { cart, total };
+    }
+
+    function removeItem(index) {
+        let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        cart.splice(index, 1);
+        localStorage.setItem('cart', JSON.stringify(cart));
+        loadCart();
+    }
+
+    async function sendOrder() {
+        const { cart, total } = loadCart();
+        const name = document.getElementById('custName').value.trim();
+        const phone = document.getElementById('custPhone').value.trim();
+        const address = document.getElementById('custAddress').value.trim();
+
+        if(!name || !phone || !address || cart.length === 0) {
+            return alert("Iltimos, barcha ma'lumotlarni kiriting!");
+        }
+
+        const btn = document.getElementById('sendBtn');
+        btn.innerText = "Yuborilmoqda...";
+        btn.disabled = true;
+
+        try {
+            const res = await fetch('/place-order/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ name, phone, address, total, items: cart })
+            });
+
+            const data = await res.json();
+            if(data.status === 'success') {
+                alert("Rahmat! Buyurtmangiz qabul qilindi. ✅");
+                localStorage.removeItem('cart');
+                window.location.href = '/';
+            }
+        } catch (err) {
+            alert("Xatolik yuz berdi. Qayta urinib ko'ring.");
+            btn.innerText = "Buyurtmani rasmiylashtirish";
+            btn.disabled = false;
+        }
+    }
+    loadCart();
+</script>
+{% endblock %}

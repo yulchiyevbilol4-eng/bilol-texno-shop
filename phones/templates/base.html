@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BILOL'S TEXNO SHOP{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #7000ff;
+            --secondary-color: #21d4fd;
+        }
+        
+        body { 
+            background-color: #f8f9fa; 
+            font-family: 'Inter', sans-serif; 
+            min-height: 100vh;
+        }
+        
+        .navbar { 
+            background: white !important; 
+            border-bottom: 1px solid #eee; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            color: var(--primary-color) !important;
+        }
+        
+        /* Savat badge dizayni */
+        .cart-btn-container { position: relative; display: inline-block; }
+        #cart-count {
+            background: var(--primary-color); 
+            color: white; 
+            border-radius: 50%;
+            min-width: 20px; 
+            height: 20px; 
+            font-size: 11px; 
+            font-weight: 600;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            position: absolute; 
+            top: -8px; 
+            right: -8px; 
+            border: 2px solid white;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Nasiya bloki */
+        #nasiya_details { 
+            border: 2px dashed var(--primary-color); 
+            background: #f0f7ff; 
+            display: none; 
+            border-radius: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .rounded-25 { border-radius: 25px !important; }
+        
+        .confirm-btn {
+            background: linear-gradient(135deg, #7000ff 0%, #21d4fd 100%);
+            border-radius: 16px;
+            transition: all 0.2s ease;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        .confirm-btn:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 8px 25px rgba(112, 0, 255, 0.4);
+            color: white; 
+        }
+        
+        /* Toast container */
+        .toast-container { z-index: 1100; }
+        
+        /* Cart item animation */
+        .cart-item { animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Yandex Map Styles */
+        #yandex-map {
+            width: 100%;
+            height: 250px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border: 2px solid #e9ecef;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            background-color: #f0f0f0; /* Yuklanmaguncha kulrang fon */
+        }
+    </style>
+</head>
+<body>
+
+<!-- Toast Container -->
+<div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+
+<nav class="navbar navbar-expand-lg sticky-top py-3">
+    <div class="container d-flex justify-content-between align-items-center">
+        <a class="navbar-brand fw-bold" href="{% url 'phones:home' %}">
+            <i class="fas fa-bolt me-2"></i>BILOL'S TEXNO SHOP
+        </a>
+        
+        <div class="d-flex align-items-center">
+            <!-- Menyu Linklari -->
+            <ul class="navbar-nav d-flex flex-row gap-3 me-4 mb-0 d-none d-md-flex">
+                <li class="nav-item">
+                    <a class="nav-link fw-bold text-dark" href="{% url 'phones:home' %}">Asosiy</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link fw-bold text-dark" href="{% url 'phones:catalog' %}">Katalog</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link fw-bold text-dark" href="{% url 'phones:about' %}">Biz haqimizda</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link fw-bold text-dark" href="{% url 'phones:contact' %}">Aloqa</a>
+                </li>
+            </ul>
+            
+            <div class="cart-btn-container">
+                <button class="btn btn-outline-dark rounded-3 d-flex align-items-center gap-2" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#cartModal" 
+                        onclick="updateCartUI()"
+                        aria-label="Savatni ochish">
+                    <i class="fas fa-shopping-cart"></i> 
+                    <span class="d-none d-sm-inline">Savat</span>
+                </button>
+                <span id="cart-count" aria-label="Savatdagi mahsulotlar soni">0</span>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<main class="container mt-4">
+    {% block content %}{% endblock %}
+</main>
+
+<!-- Cart Modal -->
+<div class="modal fade" id="cartModal" tabindex="-1" aria-labelledby="cartModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg rounded-25">
+            
+            <!-- Modal Header -->
+            <div class="modal-header border-0 px-4 pt-4 text-start">
+                <h4 class="fw-bold m-0" id="cartModalLabel">
+                    <i class="fas fa-shopping-basket me-2 text-primary"></i>Savat
+                </h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Yopish"></button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body px-4 pb-4">
+                
+                <!-- Cart Items List -->
+                <div id="cart-items-list" class="mb-3 text-start min-vh-25"></div>
+
+                <!-- Total Price -->
+                <div class="d-flex justify-content-between align-items-center fw-bold fs-4 mt-3 border-top pt-3">
+                    <span>Jami:</span>
+                    <span id="cart-total-price" class="text-primary" aria-live="polite">0 so'm</span>
+                </div>
+
+                <!-- Order Form -->
+                <form id="order-form" method="POST" action="{% url 'phones:create_order' %}" class="mt-4" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- Hidden Fields -->
+                    <input type="hidden" name="items" id="hidden-items">
+                    <input type="hidden" name="total_price" id="hidden-total">
+                    <input type="hidden" name="loan_period" id="hidden-period" value="1">
+                    <input type="hidden" name="latitude" id="hidden-lat">
+                    <input type="hidden" name="longitude" id="hidden-lon">
+
+                    <!-- Payment Type -->
+                    <div class="mb-4 text-start">
+                        <span class="fw-bold small text-muted mb-2 d-block text-uppercase">To'lov usuli:</span>
+                        <div class="d-flex gap-2" role="radiogroup" aria-label="To'lov usuli tanlash">
+                            <input type="radio" class="btn-check" name="payment_type" id="pay_cash" value="cash" checked onchange="togglePayment()">
+                            <label class="btn btn-outline-primary w-50 py-2 fw-bold" for="pay_cash">
+                                <i class="fas fa-money-bill-wave me-1"></i>Naqd
+                            </label>
+
+                            <input type="radio" class="btn-check" name="payment_type" id="pay_nasiya" value="nasiya" onchange="togglePayment()">
+                            <label class="btn btn-outline-primary w-50 py-2 fw-bold" for="pay_nasiya">
+                                <i class="fas fa-hand-holding-usd me-1"></i>Nasiya
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Nasiya Details -->
+                    <div id="nasiya_details" class="mb-4 p-3 text-start" role="region" aria-label="Nasiya shartlari">
+                        <span class="fw-bold small text-primary mb-2 d-block">
+                            <i class="fas fa-calendar-alt me-1"></i>NASIYA MUDDATI:
+                        </span>
+                        <select id="loan_selector" 
+                                class="form-select border-0 shadow-sm mb-2 form-control-custom" 
+                                onchange="updateCartUI()"
+                                aria-label="Nasiya muddatini tanlash">
+                            <option value="3">3 oy (+5% ustama)</option>
+                            <option value="6">6 oy (+10% ustama)</option>
+                            <option value="9">9 oy (+15% ustama)</option>
+                            <option value="12" selected>12 oy (+20% ustama)</option>
+                            <option value="24">24 oy (+35% ustama)</option>
+                        </select>
+                        <div class="d-flex justify-content-between align-items-center mt-2 px-1">
+                            <span class="small text-muted">Oylik to'lov:</span>
+                            <span id="monthly_payment_text" class="fw-bold text-primary fs-5" aria-live="polite">0 so'm</span>
+                        </div>
+                        <small class="text-muted d-block mt-2">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Ustama foizlari oylik to'lovga qo'shiladi
+                        </small>
+                    </div>
+
+                    <!-- Customer Info with Yandex Map -->
+                    <div class="text-start">
+                        <label for="customer-name" class="visually-hidden">Ismingiz</label>
+                        <input type="text" 
+                               id="customer-name"
+                               name="name" 
+                               class="form-control form-control-custom mb-2" 
+                               placeholder="👤 Ismingiz" 
+                               required 
+                               minlength="2"
+                               maxlength="50">
+                        
+                        <label for="customer-phone" class="visually-hidden">Telefon raqam</label>
+                        <input type="tel" 
+                               id="customer-phone"
+                               name="phone" 
+                               class="form-control form-control-custom mb-2" 
+                               value="+998" 
+                               required 
+                               pattern="^\+998\d{9}$"
+                               title="+998 90 123 45 67 formatida kiriting"
+                               maxlength="13"
+                               oninput="formatPhoneInput(this)">
+                        
+                        <!-- YANDEX MAPS QISMI -->
+                        <label class="form-label small fw-bold text-muted mt-2">📍 Yetkazib berish manzili:</label>
+                        
+                        <!-- Xarita Konteyneri -->
+                        <div id="yandex-map"></div>
+                        
+                        <!-- Tanlangan manzil matni -->
+                        <input type="text" 
+                               id="selected-address-text" 
+                               class="form-control form-control-custom mb-2 bg-light" 
+                               placeholder="Xaritadan manzilni tanlang..." 
+                               readonly>
+                        
+                        <!-- Yashirin Input -->
+                        <input type="hidden" name="address" id="hidden-address-full">
+                        
+                        <small class="text-muted d-block mb-3"><i class="fas fa-info-circle me-1"></i> Xaritadagi pin joylashuvini siljitib, aniq manzilni belgilang.</small>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" 
+                            class="btn confirm-btn w-100 py-3 shadow-lg border-0 text-white fw-bold"
+                            id="submit-btn">
+                        <span id="submit-text">BUYURTMANI TASDIQLASH</span>
+                        <span id="submit-spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                    </button>
+                    
+                    <small class="text-muted d-block text-center mt-2">
+                        <i class="fas fa-shield-alt me-1"></i>
+                        Ma'lumotlaringiz himoyalangan
+                    </small>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Yandex Maps API Script -->
+<!-- DIQQAT: API Key to'g'riligini tekshiring. Agar ishlamasa, yangi key oling -->
+<script src="https://api-maps.yandex.ru/2.1/?apikey=1ee3d698-2c3b-45e0-8aeb-62585858e435&lang=uz_UZ" type="text/javascript"></script>
+
+<!-- Main Application JS -->
+<script>
+/**
+ * CART MODAL - Xavfsiz va barqaror versiya
+ * Yandex Maps integratsiyasi bilan ✅
+ */
+
+// ============= YORDAMCHI FUNKSIYALAR =============
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function parsePrice(value) {
+    if (value === null || value === undefined) return 0;
+    let clean = String(value)
+        .replace(/\s/g, '')
+        .replace(/,/g, '')
+        .replace(/[^\d]/g, '');
+    const parsed = parseInt(clean, 10);
+    return isNaN(parsed) ? 0 : parsed;
+}
+
+function removeLastTwoZeros(value) {
+    const num = Number(value);
+    if (isNaN(num) || num === 0) return 0;
+    return Math.floor(num / 100);
+}
+
+function formatSum(n) {
+    const num = Number(n) || 0;
+    return Math.round(num)
+        .toString()
+        .replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+}
+
+function getCartFromStorage() {
+    try {
+        const raw = localStorage.getItem('cart');
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return [];
+        return parsed.filter(item => item && item.id && item.price !== undefined);
+    } catch (e) {
+        console.error('🛒 Cart parsing error:', e);
+        localStorage.removeItem('cart');
+        return [];
+    }
+}
+
+function saveCartToStorage(cart) {
+    try {
+        localStorage.setItem('cart', JSON.stringify(cart));
+        return true;
+    } catch (e) {
+        console.error('💾 Cart saving error:', e);
+        return false;
+    }
+}
+
+function formatPhoneInput(input) {
+    let value = input.value.replace(/\D/g, '');
+    if (!value.startsWith('998')) {
+        value = '998' + value;
+    }
+    if (value.length > 12) {
+        value = value.slice(0, 12);
+    }
+    input.value = '+' + value;
+}
+
+// ============= ASOSIY FUNKSIYALAR =============
+
+function addToCart(id, name, price, image) {
+    console.log('🛒 Adding to cart:', { id, name, price, image });
+    
+    if (!id || !name) {
+        showToast('Mahsulot ma\'lumotlari noto\'g\'ri!', 'danger');
+        return false;
+    }
+
+    let numericPrice = parsePrice(price);
+    numericPrice = removeLastTwoZeros(numericPrice);
+    
+    console.log('💰 Parsed & Fixed Price:', numericPrice);
+    
+    if (numericPrice <= 0) {
+        showToast('Narx noto\'g\'ri!', 'danger');
+        return false;
+    }
+    
+    let cart = getCartFromStorage();
+    const stringId = String(id);
+    const existingItem = cart.find(item => item.id === stringId);
+
+    if (existingItem) {
+        existingItem.qty = (existingItem.qty || 1) + 1;
+        showToast(`${name} soni oshirildi! 📦`, 'success');
+    } else {
+        cart.push({
+            id: stringId,
+            name: escapeHtml(name),
+            price: numericPrice,
+            image: escapeHtml(image || '/static/no-image.png'),
+            qty: 1,
+            addedAt: new Date().toISOString()
+        });
+        showToast(`${name} savatga qo'shildi! 🛒`, 'success');
+    }
+
+    saveCartToStorage(cart);
+    updateCartBadge();
+    updateCartUI();
+    
+    if (navigator.vibrate) navigator.vibrate(50);
+    return true;
+}
+
+function togglePayment() {
+    const nasiyaDetails = document.getElementById('nasiya_details');
+    const isNasiya = document.getElementById('pay_nasiya')?.checked;
+    if (nasiyaDetails) {
+        nasiyaDetails.style.display = isNasiya ? 'block' : 'none';
+    }
+    updateCartUI();
+}
+
+function updateCartUI() {
+    const list = document.getElementById('cart-items-list');
+    const totalEl = document.getElementById('cart-total-price');
+    const monthlyEl = document.getElementById('monthly_payment_text');
+    const loanSelector = document.getElementById('loan_selector');
+    const isNasiya = document.getElementById('pay_nasiya')?.checked;
+    
+    if (!list || !totalEl) return;
+    
+    const cart = getCartFromStorage();
+    let baseTotal = 0;
+    
+    if (cart.length === 0) {
+        list.innerHTML = `
+            <div class="text-center text-muted py-5">
+                <i class="fas fa-shopping-cart fa-3x mb-3 opacity-25"></i>
+                <p class="mb-0">Savat hozircha bo'sh</p>
+                <small class="text-secondary">Mahsulotlarni tanlab, savatga qo'shing</small>
+            </div>
+        `;
+        totalEl.innerText = "0 so'm";
+        if (monthlyEl) monthlyEl.innerText = "0 so'm";
+        updateFormHiddenFields(0, 1);
+        return;
+    }
+    
+    list.innerHTML = '';
+    
+    cart.forEach((item) => {
+        const price = parsePrice(item.price);
+        const qty = parseInt(item.qty) || 1;
+        const itemTotal = price * qty;
+        baseTotal += itemTotal;
+        
+        const itemEl = document.createElement('div');
+        itemEl.className = 'cart-item d-flex justify-content-between align-items-center mb-3 border-bottom pb-3';
+        itemEl.innerHTML = `
+            <div class="d-flex align-items-center flex-grow-1">
+                <img src="${escapeHtml(item.image || '')}" 
+                     alt="${escapeHtml(item.name)}" 
+                     style="width: 60px; height: 60px; object-fit: contain;" 
+                     class="me-3 rounded bg-light p-1"
+                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNjY2MiIHN0cm9rZS13aWR0aD0iMiI+PHJlY3QgeD0iMyIgeT0iMyIgd2lkdGg9IjE4IiBoZWlnaHQ9IjE4IiByeD0iMiIvPjxwYXRoIGQ9Ik0zIDloMThNOSAzdjE4Ii8+PC9zdmc+'">
+                <div class="flex-grow-1 min-width-0">
+                    <h6 class="fw-bold mb-1 text-truncate" style="font-size: 14px;" title="${escapeHtml(item.name)}">
+                        ${escapeHtml(item.name)}
+                    </h6>
+                    <small class="text-muted">
+                        ${qty} dona × ${formatSum(price)} so'm
+                    </small>
+                </div>
+            </div>
+            <div class="text-end ms-2">
+                <div class="fw-bold text-primary mb-2">${formatSum(itemTotal)} so'm</div>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-secondary" onclick="changeQty('${item.id}', -1)" aria-label="Kamaytirish">−</button>
+                    <button class="btn btn-outline-secondary" onclick="changeQty('${item.id}', 1)" aria-label="Oshirish">+</button>
+                </div>
+                <button onclick="removeItem('${item.id}')" 
+                        class="btn btn-sm text-danger mt-1" 
+                        aria-label="O'chirish">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+        list.appendChild(itemEl);
+    });
+    
+    let finalTotal = baseTotal;
+    let period = 1;
+    
+    if (isNasiya && loanSelector) {
+        period = parseInt(loanSelector.value) || 12;
+        const markupRates = { 
+            3: 0.05, 6: 0.10, 9: 0.15, 12: 0.20, 24: 0.35 
+        };
+        const markup = markupRates[period] || 0.20;
+        finalTotal = baseTotal * (1 + markup);
+        
+        if (monthlyEl) {
+            const monthlyPayment = finalTotal / period;
+            monthlyEl.innerText = formatSum(monthlyPayment) + " so'm";
+        }
+    }
+    
+    totalEl.innerText = formatSum(finalTotal) + " so'm";
+    updateFormHiddenFields(finalTotal, period);
+}
+
+function updateFormHiddenFields(total, period) {
+    const itemsField = document.getElementById('hidden-items');
+    const totalField = document.getElementById('hidden-total');
+    const periodField = document.getElementById('hidden-period');
+    
+    if (itemsField) itemsField.value = JSON.stringify(getCartFromStorage());
+    if (totalField) totalField.value = Math.round(total);
+    if (periodField) periodField.value = period;
+}
+
+function changeQty(itemId, delta) {
+    let cart = getCartFromStorage();
+    const item = cart.find(i => i.id === String(itemId));
+    if (!item) return;
+    item.qty = Math.max(1, (item.qty || 1) + delta);
+    if (item.qty <= 0) cart = cart.filter(i => i.id !== String(itemId));
+    if (saveCartToStorage(cart)) {
+        updateCartUI();
+        updateCartBadge();
+    }
+}
+
+function removeItem(itemId) {
+    if (!confirm('Bu mahsulotni savatdan o\'chirmoqchimisiz?')) return;
+    let cart = getCartFromStorage();
+    cart = cart.filter(item => item.id !== String(itemId));
+    if (saveCartToStorage(cart)) {
+        updateCartUI();
+        updateCartBadge();
+    }
+}
+
+function validateOrderForm() {
+    const form = document.getElementById('order-form');
+    if (!form) return false;
+    const cart = getCartFromStorage();
+    if (cart.length === 0) {
+        alert('Savat bo\'sh! Mahsulot qo\'shing');
+        return false;
+    }
+    const phone = form.phone?.value.replace(/\s/g, '');
+    if (!/^\+998\d{9}$/.test(phone)) {
+        alert('Telefon raqam +998XXXXXXXXX formatida bo\'lishi kerak');
+        form.phone?.focus();
+        return false;
+    }
+    const name = form.name?.value.trim();
+    if (!name || name.length < 2) {
+        alert('Iltimos, ismingizni to\'liq kiriting');
+        form.name?.focus();
+        return false;
+    }
+    const address = document.getElementById('hidden-address-full').value;
+    if (!address) {
+        alert('Iltimos, xaritadan manzilni tanlang!');
+        return false;
+    }
+    return true;
+}
+
+function handleFormSubmit(e) {
+    e.preventDefault();
+    if (!validateOrderForm()) return;
+    const submitBtn = document.getElementById('submit-btn');
+    const submitText = document.getElementById('submit-text');
+    const submitSpinner = document.getElementById('submit-spinner');
+    if (submitBtn) submitBtn.disabled = true;
+    if (submitText) submitText.textContent = 'Yuborilmoqda...';
+    if (submitSpinner) submitSpinner.classList.remove('d-none');
+    setTimeout(() => { e.target.submit(); }, 500);
+}
+
+function updateCartBadge() {
+    const badge = document.getElementById('cart-count');
+    if (!badge) return;
+    const cart = getCartFromStorage();
+    const totalCount = cart.reduce((sum, item) => sum + (parseInt(item.qty) || 1), 0);
+    badge.innerText = totalCount;
+    badge.style.display = totalCount > 0 ? 'flex' : 'none';
+}
+
+function showToast(message, type = 'info') {
+    const toastId = 'toast-' + Date.now();
+    const bgClass = {
+        'success': 'text-bg-success', 'danger': 'text-bg-danger', 
+        'warning': 'text-bg-warning', 'info': 'text-bg-primary'
+    }[type] || 'text-bg-primary';
+    const icon = { 'success': '✅', 'danger': '❌', 'warning': '⚠️', 'info': 'ℹ️' }[type] || 'ℹ️';
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    const toastHTML = `
+        <div id="${toastId}" class="toast align-items-center ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center gap-2">
+                    <span>${icon}</span><span>${escapeHtml(message)}</span>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Yopish"></button>
+            </div>
+        </div>`;
+    container.insertAdjacentHTML('beforeend', toastHTML);
+    const toastEl = document.getElementById(toastId);
+    const toast = new bootstrap.Toast(toastEl, { delay: 3000, autohide: true });
+    toast.show();
+    toastEl.addEventListener('hidden.bs.toast', () => { toastEl.remove(); });
+}
+
+// ============= YANDEX MAPS INITIALIZATION =============
+var myMap; // Global o'zgaruvchi
+
+function initMap() {
+    // Xaritani yaratish
+    myMap = new ymaps.Map("yandex-map", {
+        center: [41.2995, 69.2401], // Toshkent markazi
+        zoom: 12,
+        controls: ['zoomControl', 'geolocationControl']
+    });
+
+    var myPlacemark = new ymaps.Placemark([41.2995, 69.2401], {}, {
+        preset: 'islands#violetDotIconWithCaption',
+        draggable: true
+    });
+
+    myMap.geoObjects.add(myPlacemark);
+
+    var addressInput = document.getElementById('selected-address-text');
+    var hiddenAddress = document.getElementById('hidden-address-full');
+    var hiddenLat = document.getElementById('hidden-lat');
+    var hiddenLon = document.getElementById('hidden-lon');
+
+    myPlacemark.events.add('dragend', function () {
+        getAddress(myPlacemark.geometry.getCoordinates());
+    });
+
+    myMap.events.add('click', function (e) {
+        var coords = e.get('coords');
+        myPlacemark.geometry.setCoordinates(coords);
+        getAddress(coords);
+    });
+
+    function getAddress(coords) {
+        addressInput.value = "Manzil aniqlanmoqda...";
+        ymaps.geocode(coords).then(function (res) {
+            var firstGeoObject = res.geoObjects.get(0);
+            var fullAddress = firstGeoObject.getAddressLine();
+            
+            addressInput.value = fullAddress;
+            hiddenAddress.value = fullAddress;
+            hiddenLat.value = coords[0];
+            hiddenLon.value = coords[1];
+            
+            addressInput.classList.remove('bg-light');
+            addressInput.classList.add('bg-white', 'border-primary');
+        }, function (err) {
+            addressInput.value = "Manzilni aniqlab bo'lmadi.";
+            hiddenAddress.value = "";
+        });
+    }
+}
+
+// Modal ochilganda xaritani qayta yuklash (Resize fix)
+document.addEventListener('DOMContentLoaded', function() {
+    var cartModal = document.getElementById('cartModal');
+    
+    cartModal.addEventListener('shown.bs.modal', function () {
+        // Agar xarita hali yuklanmagan bo'lsa, yuklaymiz
+        if (!myMap) {
+            ymaps.ready(initMap);
+        } else {
+            // Agar yuklangan bo'lsa, o'lchamini to'g'irlaymiz
+            myMap.container.fitToViewport();
+        }
+    });
+
+    // Boshqa init funksiyalari
+    initializeCartModal();
+});
+
+function initializeCartModal() {
+    updateCartUI();
+    const form = document.getElementById('order-form');
+    if (form) form.addEventListener('submit', handleFormSubmit);
+    const phoneInput = document.getElementById('customer-phone');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function() { formatPhoneInput(this); });
+    }
+    updateCartBadge();
+}
+
+window.BilolShop = {
+    addToCart, updateCartUI, updateCartBadge, showToast, parsePrice, formatSum, getCartFromStorage, removeLastTwoZeros
+};
+</script>
+
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>

@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Aloqa | BILOL'S TEXNO SHOP{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="fw-bold text-primary">Biz bilan bog'laning</h1>
+        <p class="text-muted">Savollaringiz bormi? Bizga yozing yoki qo'ng'iroq qiling!</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="p-4 bg-white rounded-4 shadow-sm h-100 border-start border-primary border-4">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="bg-primary text-white rounded-circle p-3 me-3">
+                        <i class="fas fa-phone-alt"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold">Telefon</h6>
+                        <p class="mb-0 text-muted">+998 90 123 45 67</p>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center mb-4">
+                    <div class="bg-primary text-white rounded-circle p-3 me-3">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold">Email</h6>
+                        <p class="mb-0 text-muted">info@bilolshop.uz</p>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center mb-4">
+                    <div class="bg-primary text-white rounded-circle p-3 me-3">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold">Manzil</h6>
+                        <p class="mb-0 text-muted">Toshkent shahri, Chilonzor tumani</p>
+                    </div>
+                </div>
+
+                <hr>
+                
+                <h6 class="fw-bold mb-3 text-center">Ijtimoiy tarmoqlarimiz:</h6>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="#" class="btn btn-outline-primary rounded-circle"><i class="fab fa-telegram-plane"></i></a>
+                    <a href="#" class="btn btn-outline-primary rounded-circle"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="btn btn-outline-primary rounded-circle"><i class="fab fa-facebook-f"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="p-4 bg-white rounded-4 shadow-sm h-100">
+                <form action="#" method="POST">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Ismingiz</label>
+                            <input type="text" class="form-control rounded-3 py-2" placeholder="Bilol..." required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Telefon raqamingiz</label>
+                            <input type="tel" class="form-control rounded-3 py-2" placeholder="+998" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Mavzu</label>
+                            <input type="text" class="form-control rounded-3 py-2" placeholder="Savol turi">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Xabaringiz</label>
+                            <textarea class="form-control rounded-3" rows="4" placeholder="Xabar matnini yozing..."></textarea>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="submit" class="btn btn-primary px-5 py-2 rounded-pill fw-bold shadow">
+                                Yuborish <i class="fas fa-paper-plane ms-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-primary { background-color: #7000ff !important; }
+    .text-primary { color: #7000ff !important; }
+    .btn-primary { background-color: #7000ff !important; border-color: #7000ff !important; }
+    .btn-outline-primary { color: #7000ff !important; border-color: #7000ff !important; }
+    .btn-outline-primary:hover { background-color: #7000ff !important; color: white !important; }
+    .rounded-4 { border-radius: 1.5rem !important; }
+    .border-primary { border-color: #7000ff !important; }
+</style>
+{% endblock %}

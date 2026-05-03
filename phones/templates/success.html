@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="text-center py-5">
+    <div class="container">
+        <!-- Muvaffaqiyat belgisi (Animate.css ishlatilgan bo'lsa animatsiya bilan chiqadi) -->
+        <i class="fas fa-check-circle fa-5x text-success mb-4 animate__animated animate__bounceIn"></i>
+        
+        <h2 class="fw-bold">
+            Rahmat{% if order %}, {{ order.customer_name }}{% endif %}!
+        </h2>
+        
+        <p class="lead text-muted">Buyurtmangiz muvaffaqiyatli qabul qilindi.</p>
+        
+        {% if order %}
+            <div class="alert alert-light border d-inline-block px-4 py-3 mt-2">
+                <p class="mb-0 fw-bold">Buyurtma raqami: #{{ order.id }}</p>
+                <small class="text-muted">Tez orada operatorlarimiz siz bilan bog'lanishadi.</small>
+            </div>
+        {% endif %}
+        
+        <div class="mt-4">
+            <!-- 
+                DIQQAT: 'home' o'rniga 'phones:home' ishlatildi. 
+                Bu image_3ef59f.png skrinshotidagi xatoni tuzatadi.
+            -->
+            <a href="{% url 'phones:home' %}" class="btn btn-primary rounded-pill px-5 py-2 shadow-sm">
+                <i class="fas fa-home me-2"></i>Bosh sahifaga qaytish
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. Buyurtma muvaffaqiyatli yakunlangach, savatni tozalash
+    localStorage.removeItem('cart');
+    
+    // 2. Navbar-dagi savat hisoblagichini 0 ga tushirish
+    const badge = document.getElementById('cart-count');
+    if (badge) {
+        badge.innerText = '0';
+    }
+
+    // 3. Agar navbar-da savatni yangilash funksiyasi bo'lsa, uni chaqirish
+    if(typeof updateCartBadge === 'function') {
+        updateCartBadge();
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px;">
+    <h2>Biz bilan bog'lanish</h2>
+    <form id="contactForm" onsubmit="return validateForm(event)">
+        <input type="text" id="name" placeholder="Ismingiz" required style="width:100%; padding:10px; margin-bottom:10px;">
+        <input type="email" id="email" placeholder="Email manzilingiz" required style="width:100%; padding:10px; margin-bottom:10px;">
+        <textarea id="message" placeholder="Xabaringiz" required style="width:100%; padding:10px; margin-bottom:10px; height:100px;"></textarea>
+        <button type="submit" style="width:100%; background:#7000ff; color:white; border:none; padding:12px; border-radius:8px;">Yuborish</button>
+    </form>
+</div>
+
+<script>
+function validateForm(event) {
+    event.preventDefault();
+    const email = document.getElementById('email').value;
+    if (!email.includes('@')) {
+        alert("Iltimos, to'g'ri email kiriting!");
+        return false;
+    }
+    alert("Xabaringiz qabul qilindi! ✅");
+    return true;
+}
+</script>
+{% endblock %}

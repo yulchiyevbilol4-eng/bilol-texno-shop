@@ -1,0 +1,465 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Bosh sahifa - BILOL'S TEXNO SHOP{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="p-5 mb-5 rounded-5 shadow-sm text-white animate__animated animate__fadeIn" 
+     style="background: linear-gradient(135deg, #7000ff 0%, #21d4fd 100%);">
+    <div class="row align-items-center">
+        <div class="col-lg-7">
+            <h1 class="display-4 fw-bold mb-3">Eng so'nggi gadjetlar Bilol'da!</h1>
+            <p class="lead mb-4 opacity-75">Sifatli telefonlar va 3 oydan 24 oygacha qulay nasiya savdo shartlari faqat bizda.</p>
+            <a href="#products" class="btn btn-light btn-lg rounded-pill px-4 fw-bold text-primary shadow">Xaridni boshlash</a>
+        </div>
+        <div class="col-lg-5 d-none d-lg-block text-center">
+            <i class="fas fa-mobile-alt fa-10x opacity-25 animate__animated animate__pulse animate__infinite"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Search Section -->
+<div class="row mb-5 justify-content-center">
+    <div class="col-md-8 position-relative">
+        <div class="input-group shadow-sm rounded-pill overflow-hidden border-2" style="border: 2px solid #7000ff;">
+            <span class="input-group-text bg-white border-0 ps-4">
+                <i class="fas fa-search text-primary"></i>
+            </span>
+            <input type="text" id="search-input" name="q" class="form-control border-0 py-3" 
+                   placeholder="Telefon modelini kiriting (masalan: iPhone 15)..." autocomplete="off">
+        </div>
+        <div id="suggestions-box" class="list-group position-absolute w-100 shadow-lg mt-2 rounded-4 overflow-hidden" 
+             style="z-index: 1100; display: none; left: 0; right: 0; padding: 0 15px;">
+        </div>
+    </div>
+</div>
+
+<!-- Products Grid -->
+<div id="products" class="row g-4">
+    {% for phone in phones %}
+    <div class="col-6 col-md-4 col-lg-3 animate__animated animate__fadeInUp">
+        <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden product-card position-relative">
+            
+            <!-- Yangi badge -->
+            <div class="position-absolute top-0 start-0 m-3 z-3">
+                <span class="badge rounded-pill bg-danger shadow-sm">Yangi</span>
+            </div>
+
+            <!-- Mahsulot rasmi va link -->
+            <a href="{% url 'phones:phone_detail' phone.pk %}" class="text-decoration-none">
+                <div class="position-relative overflow-hidden bg-white" style="height: 200px;">
+                    {% if phone.image %}
+                        <img src="{{ phone.image.url }}" 
+                             class="card-img-top p-3 h-100 w-100 product-img-js-{{ phone.id }}" 
+                             style="object-fit: contain; transition: 0.4s;" 
+                             alt="{{ phone.name }}">
+                    {% else %}
+                        <img src="{% static 'images/no-image.png' %}" 
+                             class="card-img-top p-3 h-100 w-100" 
+                             style="object-fit: contain;">
+                    {% endif %}
+                </div>
+            </a>
+
+            <!-- Mahsulot ma'lumotlari -->
+            <div class="card-body d-flex flex-column p-3">
+                <a href="{% url 'phones:phone_detail' phone.pk %}" class="text-decoration-none text-dark">
+                    <h6 class="fw-bold mb-1 text-truncate" title="{{ phone.name }}">{{ phone.name }}</h6>
+                </a>
+                
+                <p class="text-muted small mb-2" style="font-size: 11px;">
+                    <i class="fas fa-clock text-primary me-1"></i> Nasiya: 3 - 24 oyga
+                </p>
+                
+                <div class="mt-auto">
+                    <!-- Narx (formatlangan ko'rinishda) -->
+                    <div class="mb-3">
+                        <span class="text-primary fw-bold fs-5">{{ phone.price }} so'm</span>
+                    </div>
+                    
+                    <!-- Tugmalar -->
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'phones:phone_detail' phone.pk %}" 
+                           class="btn btn-outline-primary flex-grow-1 py-2 rounded-3 fw-bold border-2"
+                           style="border-color: #7000ff; color: #7000ff; transition: 0.3s;">
+                           Ko'rish
+                        </a>
+                        
+                        <!-- SAVATGA QO'SHISH TUGMASI -->
+                        <button type="button" 
+                                id="btn-{{ phone.id }}"
+                                data-product-id="{{ phone.id }}"
+                                data-product-name="{{ phone.name|escapejs }}"
+                                data-product-price="{{ phone.price }}"
+                                data-product-image="{% if phone.image %}{{ phone.image.url }}{% else %}{% static 'images/no-image.png' %}{% endif %}"
+                                class="btn btn-primary px-3 rounded-3 fw-bold border-0 shadow-sm add-to-cart-btn"
+                                style="background: #7000ff;"
+                                aria-label="{{ phone.name }} ni savatga qo'shish">
+                            <i class="fas fa-shopping-cart"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5">
+        <i class="fas fa-box-open fa-4x text-muted mb-3"></i>
+        <h5 class="text-muted">Hozircha mahsulotlar yo'q</h5>
+        <p class="text-secondary">Tez orada yangi mahsulotlar qo'shiladi!</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Page-Specific Styles -->
+<style>
+    .product-card { transition: transform 0.3s, box-shadow 0.3s; }
+    .product-card:hover { 
+        transform: translateY(-8px); 
+        box-shadow: 0 15px 35px rgba(0,0,0,0.15) !important; 
+    }
+    .product-card:hover .card-img-top { 
+        transform: scale(1.05); 
+    }
+    .btn-outline-primary:hover { 
+        background-color: #7000ff; 
+        color: #fff !important; 
+    }
+    #suggestions-box .list-group-item {
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    #suggestions-box .list-group-item:hover { 
+        background-color: #f0f7ff; 
+        color: #7000ff; 
+    }
+
+    /* Fly animation for add to cart */
+    .fly-item {
+        position: fixed; 
+        z-index: 9999; 
+        pointer-events: none;
+        transition: all 0.7s cubic-bezier(0.42, 0, 0.58, 1);
+        border-radius: 12px; 
+        object-fit: contain; 
+        background: white;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+        opacity: 1;
+    }
+    
+    /* Button pulse animation */
+    @keyframes btnPulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    .btn-added {
+        animation: btnPulse 0.3s ease;
+        background: #28a745 !important;
+    }
+</style>
+
+<!-- Page-Specific JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // ============= ADD TO CART HANDLER =============
+    // Barcha "Savatga qo'shish" tugmalariga event listener qo'shamiz
+    document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Data attribute'lardan ma'lumotlarni olish
+            const id = this.dataset.productId;
+            const name = this.dataset.productName;
+            const price = this.dataset.productPrice; // String sifatida: "3 000 000"
+            const image = this.dataset.productImage;
+            
+            console.log('🛒 Adding to cart:', { id, name, price, image });
+            
+            // 1. Uchish animatsiyasi (fly effect)
+            animateFlyToCart(this, image);
+            
+            // 2. Global addToCart funksiyasini chaqirish (base.html dan)
+            if (typeof window.BilolShop?.addToCart === 'function') {
+                window.BilolShop.addToCart(id, name, price, image);
+            } else if (typeof addToCart === 'function') {
+                addToCart(id, name, price, image);
+            } else {
+                // Fallback: agar global funksiya topilmasa
+                fallbackAddToCart(id, name, price, image);
+            }
+            
+            // 3. Tugma vizual feedback
+            showButtonFeedback(this);
+        });
+    });
+    
+    // ============= FLY ANIMATION =============
+    function animateFlyToCart(btn, imageUrl) {
+        const imgElement = btn.closest('.product-card')?.querySelector('img');
+        const cartIcon = document.querySelector('#cart-count') || document.querySelector('.fa-shopping-cart');
+        
+        if (!imgElement || !cartIcon || !imageUrl) return;
+        
+        // Rasmni klonlash
+        const flyImg = document.createElement('img');
+        flyImg.src = imageUrl;
+        flyImg.classList.add('fly-item');
+        flyImg.style.width = '80px';
+        flyImg.style.height = '80px';
+        
+        // Boshlang'ich pozitsiya
+        const imgRect = imgElement.getBoundingClientRect();
+        flyImg.style.left = imgRect.left + 'px';
+        flyImg.style.top = imgRect.top + 'px';
+        
+        document.body.appendChild(flyImg);
+        
+        // Target pozitsiya (cart badge)
+        const cartRect = cartIcon.getBoundingClientRect();
+        
+        // Animatsiyani boshlash (keyingi frame da)
+        requestAnimationFrame(() => {
+            flyImg.style.left = (cartRect.left - 30) + 'px';
+            flyImg.style.top = (cartRect.top - 30) + 'px';
+            flyImg.style.width = '30px';
+            flyImg.style.height = '30px';
+            flyImg.style.opacity = '0.5';
+            flyImg.style.transform = 'scale(0.5)';
+        });
+        
+        // Elementni o'chirish
+        setTimeout(() => {
+            flyImg.remove();
+        }, 700);
+    }
+    
+    // ============= BUTTON FEEDBACK =============
+    function showButtonFeedback(btn) {
+        const originalIcon = btn.innerHTML;
+        const originalBg = btn.style.background;
+        
+        // Check icon va yashil fon
+        btn.innerHTML = '<i class="fas fa-check"></i>';
+        btn.style.background = '#28a745';
+        btn.classList.add('btn-added');
+        btn.disabled = true;
+        
+        // 1 soniyadan keyin qaytarish
+        setTimeout(() => {
+            btn.innerHTML = originalIcon;
+            btn.style.background = originalBg;
+            btn.classList.remove('btn-added');
+            btn.disabled = false;
+        }, 1000);
+    }
+    
+    // ============= FALLBACK ADD TO CART =============
+    // Agar global funksiya ishlamasa, shu yerdan ishlatamiz
+    function fallbackAddToCart(id, name, price, image) {
+        // Narxni parse qilish
+        const cleanPrice = parsePriceFallback(price);
+        
+        if (cleanPrice <= 0) {
+            alert('Narx noto\'g\'ri!');
+            return;
+        }
+        
+        // Cart'ni olish
+        let cart = [];
+        try {
+            const raw = localStorage.getItem('cart');
+            cart = raw ? JSON.parse(raw) : [];
+        } catch (e) {
+            console.error('Cart error:', e);
+        }
+        
+        // Mavjudligini tekshirish
+        const stringId = String(id);
+        const existing = cart.find(item => item.id === stringId);
+        
+        if (existing) {
+            existing.qty = (existing.qty || 1) + 1;
+        } else {
+            cart.push({
+                id: stringId,
+                name: escapeHtmlFallback(name),
+                price: cleanPrice,
+                image: image,
+                qty: 1,
+                addedAt: new Date().toISOString()
+            });
+        }
+        
+        // Saqlash
+        localStorage.setItem('cart', JSON.stringify(cart));
+        
+        // Badge ni yangilash
+        updateCartBadgeFallback();
+        
+        // Toast xabari
+        showToastFallback(`${name} savatga qo'shildi! 🛒`, 'success');
+    }
+    
+    // Narx parse qilish (fallback)
+    function parsePriceFallback(value) {
+        if (!value && value !== 0) return 0;
+        const clean = String(value)
+            .replace(/\s/g, '')
+            .replace(/,/g, '')
+            .replace(/[^\d]/g, '');
+        const parsed = parseInt(clean, 10);
+        return isNaN(parsed) ? 0 : parsed;
+    }
+    
+    // XSS escape (fallback)
+    function escapeHtmlFallback(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // Badge update (fallback)
+    function updateCartBadgeFallback() {
+        const badge = document.getElementById('cart-count');
+        if (!badge) return;
+        
+        let cart = [];
+        try {
+            const raw = localStorage.getItem('cart');
+            cart = raw ? JSON.parse(raw) : [];
+        } catch (e) { return; }
+        
+        const total = cart.reduce((sum, item) => sum + (item.qty || 1), 0);
+        badge.innerText = total;
+        badge.style.display = total > 0 ? 'flex' : 'none';
+    }
+    
+    // Toast (fallback)
+    function showToastFallback(message, type = 'info') {
+        // Oddiy alert fallback
+        if (type === 'danger') {
+            alert('⚠️ ' + message);
+        } else {
+            // Success uchun console log
+            console.log('✅ ' + message);
+        }
+    }
+    
+    // ============= SEARCH SUGGESTIONS =============
+    const searchInput = document.getElementById('search-input');
+    const suggestionsBox = document.getElementById('suggestions-box');
+    
+    if (searchInput && suggestionsBox) {
+        let searchTimeout;
+        
+        searchInput.addEventListener('input', function() {
+            const query = this.value.trim();
+            
+            // Timeout bilan so'rov yuborish (debounce)
+            clearTimeout(searchTimeout);
+            
+            if (query.length >= 2) {
+                searchTimeout = setTimeout(() => {
+                    fetchSuggestions(query);
+                }, 300);
+            } else {
+                suggestionsBox.style.display = 'none';
+                suggestionsBox.innerHTML = '';
+            }
+        });
+        
+        // Tashqariga bosilganda yopish
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
+                suggestionsBox.style.display = 'none';
+            }
+        });
+        
+        // Enter bosilganda qidirish
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const query = this.value.trim();
+                if (query) {
+                    window.location.href = `/?q=${encodeURIComponent(query)}`;
+                }
+            }
+        });
+    }
+    
+    function fetchSuggestions(query) {
+        fetch(`/api/suggestions/?q=${encodeURIComponent(query)}`)
+            .then(response => {
+                if (!response.ok) throw new Error('Network error');
+                return response.json();
+            })
+            .then(data => {
+                renderSuggestions(data);
+            })
+            .catch(error => {
+                console.error('Search error:', error);
+                suggestionsBox.style.display = 'none';
+            });
+    }
+    
+    function renderSuggestions(items) {
+        if (!items || items.length === 0) {
+            suggestionsBox.style.display = 'none';
+            return;
+        }
+        
+        suggestionsBox.innerHTML = '';
+        
+        items.slice(0, 8).forEach(item => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'list-group-item list-group-item-action border-0 py-3 px-4 bg-white d-flex align-items-center gap-3';
+            btn.innerHTML = `
+                <i class="fas fa-search text-muted opacity-50"></i>
+                <span class="flex-grow-1 text-start">${escapeHtmlFallback(item.name || item)}</span>
+                <span class="text-primary fw-bold small">${item.price ? formatSumFallback(item.price) + ' so\'m' : ''}</span>
+            `;
+            btn.onclick = function() {
+                searchInput.value = item.name || item;
+                suggestionsBox.style.display = 'none';
+                // Qidiruv natijasiga o'tish
+                const productId = item.id;
+                if (productId) {
+                    window.location.href = `/phone/${productId}/`;
+                } else {
+                    window.location.href = `/?q=${encodeURIComponent(item.name || item)}`;
+                }
+            };
+            suggestionsBox.appendChild(btn);
+        });
+        
+        suggestionsBox.style.display = 'block';
+    }
+    
+    // Format sum (fallback)
+    function formatSumFallback(n) {
+        return Math.round(Number(n) || 0)
+            .toString()
+            .replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    }
+    
+    // ============= MODAL EVENTS =============
+    // Modal ochilganda cart UI ni yangilash
+    const cartModal = document.getElementById('cartModal');
+    if (cartModal) {
+        cartModal.addEventListener('shown.bs.modal', function() {
+            if (typeof updateCartUI === 'function') {
+                updateCartUI();
+            }
+        });
+    }
+    
+    console.log('📱 Index page initialized');
+});
+</script>
+{% endblock %}

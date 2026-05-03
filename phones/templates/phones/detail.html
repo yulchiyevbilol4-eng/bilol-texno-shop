@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="background: white; padding: 20px; border-radius: 15px; display: flex; gap: 30px;">
+    <div style="flex: 1;">
+        <img src="{{ phone.image.url }}" style="width: 100%; border-radius: 10px;">
+    </div>
+    <div style="flex: 1;">
+        <h1>{{ phone.name }}</h1>
+        <p><b>Brend:</b> {{ phone.brand }}</p>
+        <p><b>Narxi:</b> {{ phone.price }} so'm</p>
+        <p>{{ phone.description }}</p>
+        <button onclick="addToCart('{{ phone.id }}', '{{ phone.name }}', '{{ phone.price }}')" 
+                style="background: #7000ff; color: white; border: none; padding: 15px; border-radius: 10px; cursor: pointer;">
+            Savatga qo'shish 🛒
+        </button>
+    </div>
+</div>
+{% endblock %}
