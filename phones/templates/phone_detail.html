@@ -112,16 +112,20 @@
             </div>
 
             <!-- Harakat Tugmalari -->
-            <div class="d-grid gap-3 d-md-block">
-                <button class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow-sm main-add-btn" 
-                        onclick="addToCart('{{ phone.id }}', '{{ phone.name|escapejs }}', '{{ phone.price }}', '{% if phone.image %}{{ phone.image.url }}{% else %}{% static 'images/no-image.png' %}{% endif %}')">
-                    <i class="fas fa-cart-plus me-2"></i> Savatga qo'shish
-                </button>
-                
-                <a href="https://t.me/+998901234567" target="_blank" class="btn btn-outline-success btn-lg px-5 py-3 rounded-pill">
-                    <i class="fab fa-telegram me-2"></i> Telegram orqali so'rash
-                </a>
-            </div>
+        <div class="d-grid d-md-block">
+    <!-- Style qo'shildi: margin-bottom: 15px !important; -->
+        <button class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow-sm main-add-btn" 
+            style="margin-bottom: 15px !important;"
+            onclick="addToCart('{{ phone.id }}', '{{ phone.name|escapejs }}', '{{ phone.price }}', '{% if phone.image %}{{ phone.image.url }}{% else %}{% static 'images/no-image.png' %}{% endif %}')">
+        <i class="fas fa-cart-plus me-2"></i> Savatga qo'shish
+        </button>
+    
+    <br class="d-md-none"> <!-- Mobil versiyada qo'shimcha qator tushirish uchun -->
+
+    <a href="https://t.me/yangi_akkaunt_nomi" target="_blank" class="btn btn-outline-success btn-lg px-5 py-3 rounded-pill">
+        <i class="fab fa-telegram me-2"></i> Telegram orqali so'rash
+    </a>
+</div>
             
             <div class="mt-4 p-3 bg-light rounded-3 border">
                 <small class="text-muted d-block"><i class="fas fa-truck me-1"></i> Yetkazib berish: Toshkent shahri bo'ylab bepul</small>
@@ -194,6 +198,8 @@
         transform: translateY(-5px);
         box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
     }
+    /* Savatga qo'shish tugmasi uchun pastki masofa */
+
 </style>
 
 <!-- Sahifa uchun maxsus JS -->

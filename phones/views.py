@@ -7,6 +7,7 @@ from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_POST
 from django.conf import settings
 from .models import Phone, Order
+from decimal import Decimal
 
 # Xatoliklarni terminalda kuzatish uchun logging
 logger = logging.getLogger(__name__)
@@ -135,7 +136,7 @@ def create_order(request):
         if payment_type == 'nasiya':
             markup_rates = {3: 0.05, 6: 0.10, 9: 0.15, 12: 0.20, 24: 0.35}
             markup = markup_rates.get(loan_period_val, 0.20)
-            final_total = server_total * (1 + markup)
+            final_total = server_total * (Decimal('1') + Decimal(str(markup)))
 
         # 4. BAZAGA SAQLASH (Modeldagi nomlar bilan moslashtirildi)
         order = Order.objects.create(
