@@ -1,19 +1,16 @@
-import dj_database_url
 import os
+import dj_database_url
 from pathlib import Path
 
-# Loyihaning asosiy yo'li
+# 1. ASOSIY YO'LLAR
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Xavfsizlik kaliti (Ishlab chiqish jarayoni uchun)
+# 2. XAVFSIZLIK VA DEBUG
 SECRET_KEY = 'django-insecure-your-secret-key-here'
+DEBUG = True # Serverda hamma narsa ishlagach False qiling
+ALLOWED_HOSTS = ['*']
 
-# Debug rejimini yoqish (Xatolarni ko'rish uchun)
-DEBUG = True
-
-ALLOWED_HOSTS = ['*'] # Barcha hostlarga ruxsat berish
-
-# O'rnatilgan ilovalar
+# 3. ILOVALAR
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -22,31 +19,28 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
-    
-    # Sizning ilovangiz
-    'phones.apps.PhonesConfig', # Ilovani to'liq nomi bilan ko'rsatish tavsiya etiladi
+    'phones.apps.PhonesConfig',
 ]
 
+# 4. MIDDLEWARE (WhiteNoise tartibi muhim)
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', # Statik fayllar uchun
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
-ROOT_URLCONF = 'core.urls' # Loyihangiz papkasi nomi 'core' bo'lsa shunday qoladi
+ROOT_URLCONF = 'core.urls'
 
+# 5. TEMPLATES
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            BASE_DIR / 'templates',          # Asosiy papkadagi templates
-            BASE_DIR / 'phones' / 'templates' # Phones ichidagi templates
-        ],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -59,22 +53,24 @@ TEMPLATES = [
     },
 ]
 
-# Ma'lumotlar bazasi (SQLite)
+# 6. MA'LUMOTLAR BAZASI (Eng muhim qismi)
+# Vercel-dagi Postgres yoki lokal SQLite-ni avtomatik aniqlaydi
 DATABASES = {
     'default': dj_database_url.config(
-        # Vercel-da AWS RDS ulanganda ko'pincha 'POSTGRES_URL' ishlatiladi
-        default=os.environ.get('POSTGRES_URL') or os.environ.get('DATABASE_URL'),
+        default=os.environ.get('DATABASE_URL') or os.environ.get('POSTGRES_URL'),
         conn_max_age=600,
-        ssl_require=True
+        ssl_require=True if os.environ.get('DATABASE_URL') else False
     )
 }
-if not DATABASES['default']:
-     DATABASES['default'] = {
-        'ENGINE': 'django.db.backends.postgresql',
-        # Bu yerga Vercel Storage bo'limidagi ma'lumotlarni qo'lda yozish ham mumkin, 
-        # lekin os.environ ishlatish tavsiya etiladi.
+
+# Agar serverda DATABASE_URL topilmasa (lokal kompyuterda bo'lsangiz)
+if not DATABASES.get('default') or not DATABASES['default'].get('ENGINE'):
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
-# Parol tekshiruvi
+
+# 7. PAROL TEKSHIRUVI
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
@@ -82,33 +78,28 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
 ]
 
-# Til va vaqt sozlamalari
+# 8. TIL VA VAQT
 LANGUAGE_CODE = 'uz-uz'
 TIME_ZONE = 'Asia/Tashkent'
 USE_I18N = True
 USE_TZ = True
 
-# --- STATIK VA MEDIA FAYLLAR ---
+# 9. STATIK VA MEDIA FAYLLAR
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
-# CSS, JavaScript va rasmlar uchun
-STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles' # Serverda statik fayllarni yig'ish uchun
-STATICFILES_DIRS = [BASE_DIR / 'static'] # Ish jarayonidagi statik fayllar joyi
+# Statik fayllarni serverda siqish va keshlashtirish
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# MEDIA FAYLLAR (Telefon rasmlari uchun!)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# 10. QO'SHIMCHA SOZLAMALAR
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-# settings.py oxiriga qo'shing yoki borini tekshiring
 USE_THOUSAND_SEPARATOR = True
-USE_L10N = True
-# Tiyinlarni (verguldan keyingi qismni) butkul o'chirish uchun:
-DECIMAL_SEPARATOR = ','
 NUMBER_GROUPING = 3
-# --- TELEGRAM BOT SOZLAMALARI ---
-# BotFather'dan olingan token (tirnoq ichiga yozing)
-TELEGRAM_BOT_TOKEN = '8142951659:AAFh1kDbysJP7gwvnnkEhC4AbES5cAH86dw' 
 
-# Xabar borishi kerak bo'lgan guruh yoki shaxsiy ID (faqat raqamlar)
+# 11. TELEGRAM BOT
+TELEGRAM_BOT_TOKEN = '8142951659:AAFh1kDbysJP7gwvnnkEhC4AbES5cAH86dw'
 TELEGRAM_CHAT_ID = '7996293619'
