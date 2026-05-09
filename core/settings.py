@@ -62,13 +62,18 @@ TEMPLATES = [
 # Ma'lumotlar bazasi (SQLite)
 DATABASES = {
     'default': dj_database_url.config(
-        # Vercel AWS Aurora ulanganda DATABASE_URL o'zgaruvchisini avtomatik qo'shadi
-        default=os.environ.get('DATABASE_URL'),
+        # Vercel-da AWS RDS ulanganda ko'pincha 'POSTGRES_URL' ishlatiladi
+        default=os.environ.get('POSTGRES_URL') or os.environ.get('DATABASE_URL'),
         conn_max_age=600,
-        ssl_require=True # AWS Aurora uchun xavfsiz ulanish shart
+        ssl_require=True
     )
 }
-
+if not DATABASES['default']:
+     DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.postgresql',
+        # Bu yerga Vercel Storage bo'limidagi ma'lumotlarni qo'lda yozish ham mumkin, 
+        # lekin os.environ ishlatish tavsiya etiladi.
+    }
 # Parol tekshiruvi
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
